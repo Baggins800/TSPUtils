@@ -5,13 +5,30 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <random>
+#include <set>
+#include <fstream>
+#include <iomanip>
+#include <string>
 #include "json.hpp"
 using std::vector;
+using std::string;
+using std::set;
+using std::iota;
+using std::begin;
+using std::end;
 using std::map;
 using std::cout;
 using std::endl;
 using std::numeric_limits;
 using std::isinf;
+using std::mt19937_64;
+using std::seed_seq;
+using std::uniform_real_distribution;
+using std::uniform_int_distribution;
+using std::sort;
+using std::setw;
+using std::ofstream;
 using json = nlohmann::json;
 
 struct Vertex {
@@ -42,6 +59,100 @@ class Graph {
       arc->id = a["id"];
       arcs.push_back(arc);
       arc_map[arc->id] = arc;
+    }
+  }
+
+  Graph(const uint32_t & seed, const uint32_t & V,
+    uint32_t A, const double & min, const double & max) {
+    mt19937_64 generator(seed);
+    cout << "Generating graph" << endl;
+    uniform_real_distribution<double> dist_gen(min, max);
+    uniform_int_distribution<uint32_t> vert_gen(0, V - 1);
+
+    for (uint32_t i = 0; i < V; ++i) add_vertex(i);
+    sort(vertices.begin(), vertices.end());
+    auto init_source = vertices[vert_gen(generator)];
+    auto source = init_source;
+    auto target = vertices[vert_gen(generator)];
+    while (source == target)
+      target = vertices[vert_gen(generator)];
+    vector<const Vertex *> explored;
+    vector<const Vertex *> diff(V);
+    explored.push_back(source);
+
+    // generate at least a graph with one solution
+    while (explored.size() < V) {
+      double distance = dist_gen(generator);
+      explored.push_back(target);
+      sort(explored.begin(), explored.end());
+      add_arc(source, target, distance); 
+      source = target;
+      auto it = set_difference(vertices.begin(), vertices.end(),
+        explored.begin(), explored.end(), diff.begin());
+      uniform_int_distribution<uint32_t> rem_gen(0, it - diff.begin());
+      target = *(diff.begin());
+    }
+    add_arc(target, init_source, dist_gen(generator));
+    if (A > V * V - V) A = V * V - V;
+    while (arcs.size() < A) {
+      const Vertex * s = vertices[vert_gen(generator)];
+      const Vertex * t = vertices[vert_gen(generator)];
+      if (s != t)
+        add_arc(s, t, dist_gen(generator));
+    }
+  }
+  void add_vertex(const uint32_t & id) {
+    auto vertex = new Vertex;
+    vertex->id = id;
+    for (auto v : vertices) {
+      if (v->id == id) {
+        delete vertex;
+        assert(false);
+        return;
+      }
+    }
+    vertices.push_back(vertex);
+  }
+
+  void save_graph_as_json(const string & filename) {
+    json jgraph;
+    jgraph["vertices"] = {}; 
+    jgraph["arcs"] = {}; 
+    for (auto v : vertices) {
+      json vertex;
+      vertex["id"] = v->id;
+      jgraph["vertices"].push_back(vertex);
+    }
+    for (auto a : arcs) {
+      json arc;
+      arc["id"] = a->id;
+      arc["source_id"] = a->source->id;
+      arc["target_id"] = a->target->id;
+      json weight;
+      weight["name"] ="distance";
+      weight["value"] = a->weight;
+      arc["weights"].push_back(weight);
+      jgraph["arcs"].push_back(arc);
+    }
+    ofstream o(filename);
+    o << setw(2) << jgraph << endl;
+  }
+
+  void add_arc(const Vertex *s, const Vertex *t, const double & weight) {
+    bool exists = false;
+    for (auto & a : arcs) {
+      if ((a->source == s) && (a->target == t)) {
+        exists = true;
+        break;
+      }
+    }
+    if (!exists) {
+      auto a = new Arc;
+      a->id = arcs.size();
+      a->source = s;
+      a->target = t;
+      a->weight = weight;
+      arcs.push_back(a);
     }
   }
 

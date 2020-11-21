@@ -22,7 +22,17 @@ int main(int argc, char *argv[]) {
    * i >> data;
    * Graph G(data);
    */
-  Graph G(p.get_data());
+  Graph * G = nullptr;
+  if (p.get_seed() == 0) {
+    G = new Graph(p.get_data());
+  } else {
+    G = new Graph(p.get_seed(),
+      p.get_vertices_to_generate(),
+      p.get_arcs_to_generate(), 1e2, 5e5);
+  }
+  if (p.get_save_filename() != "") {
+    G->save_graph_as_json(p.get_save_filename());
+  }
   //Solution s(G.get_vertices(), &G);
   //G.print_vertices(s.get_solution());
   //cout << fixed << s.get_objective() << endl;
@@ -52,8 +62,8 @@ int main(int argc, char *argv[]) {
    * see greedy.h for an example of a solver implementation
    */
 
-  if (p.use_greedy() && (solver == nullptr)) {
-    solver = new Greedy(&G);
+  if (p.use_greedy() && !solver) {
+    solver = new Greedy(G);
   }
 
   //if (p.use_tabu() && (solver == nullptr))
@@ -64,7 +74,7 @@ int main(int argc, char *argv[]) {
 
 
   // check if a solver was selected
-  if (solver == nullptr) {
+  if (!solver || !G) {
     assert(solver);
     exit(127);
   }
@@ -72,7 +82,7 @@ int main(int argc, char *argv[]) {
 
   // print solutions obtained
   for (auto sol : solver->get_solutions()) {
-    G.print_vertices(sol->get_solution());
+    G->print_vertices(sol->get_solution());
     cout << "objective value: " << fixed << sol->get_objective() << endl;
   }
   
