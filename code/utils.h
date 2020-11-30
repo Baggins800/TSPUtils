@@ -107,7 +107,6 @@ class Graph {
     for (auto v : vertices) {
       if (v->id == id) {
         delete vertex;
-        assert(false);
         return;
       }
     }
