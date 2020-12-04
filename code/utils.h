@@ -261,7 +261,7 @@ class Graph {
   const double get_distance(const Vertex * s, const Vertex * t) const {
     for (auto a : arcs)
       if ((a->source == s) && (a->target == t)) return a->weight;
-    return numeric_limits<double>::max();
+    return numeric_limits<double>::infinity();
   }
 
   ~Graph() {
@@ -312,6 +312,7 @@ class Solution {
       if (first) {
         first = false;
         objective_value += graph->get_distance(v, *(&v + 1));
+
       } else {
         if (v != solution.back())
           objective_value += graph->get_distance(v, *(&v + 1));
