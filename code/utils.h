@@ -107,6 +107,7 @@ class Graph {
     for (auto v : vertices) {
       if (v->id == id) {
         delete vertex;
+        assert(false);
         return;
       }
     }
@@ -254,7 +255,7 @@ class Graph {
     const uint32_t & t_id) const {
     for (auto a : arcs)
       if (a->source->id == s_id && a->target->id == t_id) return a->weight;
-    return numeric_limits<double>::max();
+    return numeric_limits<double>::infinity();
   }
 
   const double get_distance(const Vertex * s, const Vertex * t) const {
