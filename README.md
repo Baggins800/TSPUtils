@@ -25,6 +25,15 @@ cmake ../code && make -j
 
 ## Run the executable
 ### Windows 10
-./TSP.exe --json=pathto.json --greedy
+```
+./TSP.exe --load-json=pathto.json --greedy
+```
 ### Linux
-./TSP --json=pathto.json --greedy
+```
+./TSP --load-json=pathto.json --greedy
+```
+
+## Generate a random dataset
+```
+./TSP<.exe> --seed=<some unsigned integer> --arcs=<number of arcs> --vertices=<number of vertices> --save-json=datasetname.json
+```
