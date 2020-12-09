@@ -298,6 +298,8 @@ class Solution {
     const Vertex * t = solution[pos1];
     solution[pos1] = solution[pos2];
     solution[pos2] = t;
+    if (pos1 == 0) solution[solution.size() - 1] = solution[pos2];
+    if (pos2 == 0) solution[solution.size() - 1] = solution[pos1];
     calculate_objective();
   }
 
@@ -318,7 +320,9 @@ class Solution {
           objective_value += graph->get_distance(v, *(&v + 1));
       }
     }
-    feasible = !isinf(objective_value);
+    feasible = !isinf(objective_value) &&
+      (solution.front() == solution.back()) &&
+      (solution.size() > 2);
   }
 
   const double & get_objective() const {
